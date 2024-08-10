@@ -3,116 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catch the Ball Game</title>
+    <title>Endless Runner Game</title>
     <style>
         body {
             margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #282c34;
-            color: white;
             font-family: Arial, sans-serif;
         }
         canvas {
-            border: 2px solid #ffffff;
-            background-color: #000000;
+            border: 2px solid #000;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        let paddleHeight = 10;
-        let paddleWidth = 75;
-        let paddleX = (canvas.width - paddleWidth) / 2;
-
-        let ballRadius = 10;
-        let x = canvas.width / 2;
-        let y = canvas.height - 30;
-        let dx = 2;
-        let dy = -2;
-
-        let rightPressed = false;
+        // Game Variables
+        const stickmanWidth = 30;
+        const stickmanHeight = 30;
+        const platformWidth = 100;
+        const platformHeight = 20;
+        const gapSize = 50;
+        let stickmanX = canvas.width / 2 - stickmanWidth / 2;
+        let stickmanY = 0;
+        let stickmanSpeedY = 2;
+        let platforms = [];
+        let platformSpeed = 2;
         let leftPressed = false;
+        let rightPressed = false;
 
-        document.addEventListener("keydown", keyDownHandler, false);
-        document.addEventListener("keyup", keyUpHandler, false);
-
-        function keyDownHandler(e) {
-            if (e.key === "Right" || e.key === "ArrowRight") {
-                rightPressed = true;
-            }
-            else if (e.key === "Left" || e.key === "ArrowLeft") {
-                leftPressed = true;
-            }
-        }
-
-        function keyUpHandler(e) {
-            if (e.key === "Right" || e.key === "ArrowRight") {
-                rightPressed = false;
-            }
-            else if (e.key === "Left" || e.key === "ArrowLeft") {
-                leftPressed = false;
+        // Initialize platforms
+        function initPlatforms() {
+            platforms = [];
+            for (let i = 0; i < 10; i++) {
+                let x = Math.random() * (canvas.width - platformWidth);
+                let y = -i * (canvas.height / 10) - platformHeight;
+                platforms.push({ x, y, gapX: x + Math.random() * (platformWidth - gapSize) });
             }
         }
 
-        function drawBall() {
-            ctx.beginPath();
-            // Draw the flame effect around the ball
-            let gradient = ctx.createRadialGradient(x, y, ballRadius / 2, x, y, ballRadius);
-            gradient.addColorStop(0, "yellow");
-            gradient.addColorStop(0.5, "orange");
-            gradient.addColorStop(1, "red");
-            ctx.fillStyle = gradient;
-            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.closePath();
+        function drawStickman() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(stickmanX, stickmanY, stickmanWidth, stickmanHeight);
         }
 
-        function drawPaddle() {
-            ctx.beginPath();
-            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
-            ctx.fillStyle = "#0095DD";
-            ctx.fill();
-            ctx.closePath();
+        function drawPlatforms() {
+            ctx.fillStyle = 'brown';
+            for (let platform of platforms) {
+                ctx.fillRect(platform.x, platform.y, platformWidth, platformHeight);
+            }
+        }
+
+        function movePlatforms() {
+            for (let platform of platforms) {
+                platform.y += platformSpeed;
+            }
+            if (platforms[0].y > canvas.height) {
+                platforms.shift();
+                let x = Math.random() * (canvas.width - platformWidth);
+                platforms.push({ x, y: platforms[platforms.length - 1].y - platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
+            }
+        }
+
+        function checkCollision() {
+            for (let platform of platforms) {
+                if (stickmanY + stickmanHeight > platform.y &&
+                    stickmanY < platform.y + platformHeight &&
+                    stickmanX + stickmanWidth > platform.x &&
+                    stickmanX < platform.x + platformWidth) {
+
+                    if (stickmanX + stickmanWidth < platform.gapX ||
+                        stickmanX > platform.gapX + gapSize) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function gameOver() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+            document.removeEventListener('keydown', keyDownHandler);
+            document.removeEventListener('keyup', keyUpHandler);
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawBall();
-            drawPaddle();
+            drawStickman();
+            drawPlatforms();
+            movePlatforms();
 
-            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
-                dx = -dx;
-            }
-            if (y + dy < ballRadius) {
-                dy = -dy;
-            } else if (y + dy > canvas.height - ballRadius) {
-                if (x > paddleX && x < paddleX + paddleWidth) {
-                    dy = -dy;
-                }
-                else {
-                    document.location.reload(); // Reloads the game on miss
-                }
+            stickmanY += stickmanSpeedY;
+
+            if (stickmanY > canvas.height) {
+                stickmanY = 0;
+                stickmanX = canvas.width / 2 - stickmanWidth / 2;
             }
 
-            if (rightPressed && paddleX < canvas.width - paddleWidth) {
-                paddleX += 7;
-            }
-            else if (leftPressed && paddleX > 0) {
-                paddleX -= 7;
+            if (checkCollision()) {
+                gameOver();
+                return;
             }
 
-            x += dx;
-            y += dy;
+            if (leftPressed && stickmanX > 0) {
+                stickmanX -= 5;
+            }
+            if (rightPressed && stickmanX < canvas.width - stickmanWidth) {
+                stickmanX += 5;
+            }
+
             requestAnimationFrame(draw);
         }
 
+        function keyDownHandler(e) {
+            if (e.key === 'ArrowLeft') {
+                leftPressed = true;
+            } else if (e.key === 'ArrowRight') {
+                rightPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === 'ArrowLeft') {
+                leftPressed = false;
+            } else if (e.key === 'ArrowRight') {
+                rightPressed = false;
+            }
+        }
+
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+
+        initPlatforms();
         draw();
     </script>
 </body>
