@@ -67,4 +67,79 @@
             }
             if (platforms[0].y < -platformHeight) {
                 platforms.shift();
-                let x = Math.random() * (canvas.width - platformWidt
+                let x = Math.random() * (canvas.width - platformWidth);
+                platforms.push({ x, y: platforms[platforms.length - 1].y + platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
+            }
+        }
+
+        function checkCollision() {
+            for (let platform of platforms) {
+                if (stickmanY + stickmanHeight > platform.y &&
+                    stickmanY < platform.y + platformHeight &&
+                    stickmanX + stickmanWidth > platform.x &&
+                    stickmanX < platform.x + platformWidth) {
+
+                    if (stickmanX + stickmanWidth < platform.gapX ||
+                        stickmanX > platform.gapX + gapSize) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function gameOver() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+            document.removeEventListener('keydown', keyDownHandler);
+            document.removeEventListener('keyup', keyUpHandler);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStickman();
+            drawPlatforms();
+            movePlatforms();
+
+            if (checkCollision()) {
+                gameOver();
+                return;
+            }
+
+            if (leftPressed && stickmanX > 0) {
+                stickmanX -= 5;
+            }
+            if (rightPressed && stickmanX < canvas.width - stickmanWidth) {
+                stickmanX += 5;
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function keyDownHandler(e) {
+            if (e.key === 'ArrowLeft') {
+                leftPressed = true;
+            } else if (e.key === 'ArrowRight') {
+                rightPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === 'ArrowLeft') {
+                leftPressed = false;
+            } else if (e.key === 'ArrowRight') {
+                rightPressed = false;
+            }
+        }
+
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+
+        initPlatforms();
+        draw();
+    </script>
+</body>
+</html>
