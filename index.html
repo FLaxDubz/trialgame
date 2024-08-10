@@ -32,10 +32,11 @@
         const platformWidth = 100;
         const platformHeight = 20;
         const gapSize = 50;
+        const platformSpeed = 2;
+
         let stickmanX = canvas.width / 2 - stickmanWidth / 2;
         let stickmanY = 0; // Fixed at top of the screen
         let platforms = [];
-        let platformSpeed = 2;
         let leftPressed = false;
         let rightPressed = false;
 
@@ -63,12 +64,12 @@
 
         function movePlatforms() {
             for (let platform of platforms) {
-                platform.y -= platformSpeed;
+                platform.y += platformSpeed;
             }
-            if (platforms[0].y < -platformHeight) {
+            if (platforms[0].y > canvas.height) {
                 platforms.shift();
                 let x = Math.random() * (canvas.width - platformWidth);
-                platforms.push({ x, y: platforms[platforms.length - 1].y + platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
+                platforms.push({ x, y: platforms[platforms.length - 1].y - platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
             }
         }
 
