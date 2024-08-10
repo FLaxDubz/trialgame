@@ -63,8 +63,13 @@
 
         function drawBall() {
             ctx.beginPath();
+            // Draw the flame effect around the ball
+            let gradient = ctx.createRadialGradient(x, y, ballRadius / 2, x, y, ballRadius);
+            gradient.addColorStop(0, "yellow");
+            gradient.addColorStop(0.5, "orange");
+            gradient.addColorStop(1, "red");
+            ctx.fillStyle = gradient;
             ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "#0095DD";
             ctx.fill();
             ctx.closePath();
         }
