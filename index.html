@@ -64,12 +64,12 @@
 
         function movePlatforms() {
             for (let platform of platforms) {
-                platform.y += platformSpeed;
+                platform.y -= platformSpeed;
             }
-            if (platforms[0].y > canvas.height) {
+            if (platforms[0].y < -platformHeight) {
                 platforms.shift();
                 let x = Math.random() * (canvas.width - platformWidth);
-                platforms.push({ x, y: platforms[platforms.length - 1].y - platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
+                platforms.push({ x, y: platforms[platforms.length - 1].y + platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
             }
         }
 
