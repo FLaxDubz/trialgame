@@ -33,8 +33,7 @@
         const platformHeight = 20;
         const gapSize = 50;
         let stickmanX = canvas.width / 2 - stickmanWidth / 2;
-        let stickmanY = 0;
-        let stickmanSpeedY = 2;
+        let stickmanY = 0; // Fixed at top of the screen
         let platforms = [];
         let platformSpeed = 2;
         let leftPressed = false;
@@ -45,7 +44,7 @@
             platforms = [];
             for (let i = 0; i < 10; i++) {
                 let x = Math.random() * (canvas.width - platformWidth);
-                let y = -i * (canvas.height / 10) - platformHeight;
+                let y = canvas.height - (i * (canvas.height / 10)) - platformHeight;
                 platforms.push({ x, y, gapX: x + Math.random() * (platformWidth - gapSize) });
             }
         }
@@ -64,90 +63,8 @@
 
         function movePlatforms() {
             for (let platform of platforms) {
-                platform.y += platformSpeed;
+                platform.y -= platformSpeed;
             }
-            if (platforms[0].y > canvas.height) {
+            if (platforms[0].y < -platformHeight) {
                 platforms.shift();
-                let x = Math.random() * (canvas.width - platformWidth);
-                platforms.push({ x, y: platforms[platforms.length - 1].y - platformHeight, gapX: x + Math.random() * (platformWidth - gapSize) });
-            }
-        }
-
-        function checkCollision() {
-            for (let platform of platforms) {
-                if (stickmanY + stickmanHeight > platform.y &&
-                    stickmanY < platform.y + platformHeight &&
-                    stickmanX + stickmanWidth > platform.x &&
-                    stickmanX < platform.x + platformWidth) {
-
-                    if (stickmanX + stickmanWidth < platform.gapX ||
-                        stickmanX > platform.gapX + gapSize) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function gameOver() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
-            ctx.font = '48px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
-            document.removeEventListener('keydown', keyDownHandler);
-            document.removeEventListener('keyup', keyUpHandler);
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawStickman();
-            drawPlatforms();
-            movePlatforms();
-
-            stickmanY += stickmanSpeedY;
-
-            if (stickmanY > canvas.height) {
-                stickmanY = 0;
-                stickmanX = canvas.width / 2 - stickmanWidth / 2;
-            }
-
-            if (checkCollision()) {
-                gameOver();
-                return;
-            }
-
-            if (leftPressed && stickmanX > 0) {
-                stickmanX -= 5;
-            }
-            if (rightPressed && stickmanX < canvas.width - stickmanWidth) {
-                stickmanX += 5;
-            }
-
-            requestAnimationFrame(draw);
-        }
-
-        function keyDownHandler(e) {
-            if (e.key === 'ArrowLeft') {
-                leftPressed = true;
-            } else if (e.key === 'ArrowRight') {
-                rightPressed = true;
-            }
-        }
-
-        function keyUpHandler(e) {
-            if (e.key === 'ArrowLeft') {
-                leftPressed = false;
-            } else if (e.key === 'ArrowRight') {
-                rightPressed = false;
-            }
-        }
-
-        document.addEventListener('keydown', keyDownHandler);
-        document.addEventListener('keyup', keyUpHandler);
-
-        initPlatforms();
-        draw();
-    </script>
-</body>
-</html>
+                let x = Math.random() * (canvas.width - platformWidt
